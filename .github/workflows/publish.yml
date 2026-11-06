@@ -91,7 +91,7 @@ jobs:
       # page is client-rendered, so a failed publish copies its own output to a
       # branch we can read.
       - name: Push publish diagnostics
-        if: failure() && steps.published.outputs.skip != 'true'
+        if: always() && steps.published.outputs.skip != 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
