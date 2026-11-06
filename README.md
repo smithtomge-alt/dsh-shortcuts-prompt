@@ -135,15 +135,11 @@ The contribution must be `{ package, descriptors: [...] }`; the Gateway iterates
   input box.
 - **Theming.** Colors come only from `--dsw-alias-*` tokens; the stylesheet is a
   single element inserted for the Client run and removed with it.
-- **Dock spacing.** The built-in queue dock ends with
-  `margin-bottom: calc(0px - var(--dsh-composer-stack-gap) - 3px)`, tucking its
-  panel under the composer card. Any entry registered after it is dragged up by
-  that fixed 3px, so `.qp-root` adds it back plus one stack gap: the strip keeps
-  the normal spacing below such a dock instead of being covered by it.
-- **Form focus.** The name field autofocuses once, when a *new* form opens. The
-  focus effect deliberately tracks the open/closed transition instead of the
-  draft object: a draft is replaced on every keystroke, so depending on it would
-  pull the caret back into the name field while the user types the content.
+- **Dock placement.** The strip registers at `order: 19` — above the built-in
+  queue dock (`order: 20`) and below the goal dock. That dock ends with
+  `margin-bottom: calc(0px - var(--dsh-composer-stack-gap) - 3px)` to tuck its
+  panel under the composer card; registering *above* it keeps the strip out of
+  that negative margin instead of being dragged under the card with it.
 - **Wire method names.** The Client Gateway's Remote namespace service reserves
   `ctx`, `empty`, `invokeRemote`, `methods`, `name`, `namespace`, plus the
   prototype members `assertMethodAvailable`, `has`, `install`, `installDirect`,

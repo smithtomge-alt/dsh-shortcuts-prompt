@@ -33,7 +33,10 @@ __ModuleLoader__.load({
     /** Slot for entries above the composer card; this strip is the last one. */
     const SLOT = 'conversation.input.dock';
     /** Draw closest to the card, after the shipped queue dock (order 20). */
-    const ORDER = 30;
+    // Just above the built-in queue dock (20) and below the goal dock (10): the
+    // strip stays out of the dock's tucking negative margin and the queue keeps
+    // attaching to the composer card, as designed.
+    const ORDER = 19;
     /** This entry's id inside the slot. */
     const ENTRY_ID = 'quick-prompts';
     /** Input limits enforced on the Client side for a fast local error. */
@@ -237,7 +240,7 @@ __ModuleLoader__.load({
     // ------------------------------------------------------------------
 
     const CSS = `
-.qp-root { box-sizing: border-box; width: 100%; max-width: var(--dsh-composer-card-max-width); /* The built-in queue dock tucks itself under the composer card with margin-bottom: calc(0px - var(--dsh-composer-stack-gap) - 3px). Any entry after it is dragged up by that fixed 3px, so add it back plus one stack gap; a plain sibling above just gets the extra breathing room. */ margin: calc(var(--dsh-composer-stack-gap, 6px) + 3px) auto 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.qp-root { box-sizing: border-box; width: 100%; max-width: var(--dsh-composer-card-max-width); margin: 0 auto; padding: 0; display: flex; flex-direction: column; gap: 6px; }
 .qp-strip { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; min-width: 0; }
 .qp-chip { box-sizing: border-box; display: inline-flex; align-items: center; gap: 5px; max-width: 100%; height: 24px; padding: 0 10px; border: none; border-radius: 999px; background: var(--dsw-alias-bg-layer-2); color: var(--dsw-alias-label-secondary); font: inherit; font-size: 12px; line-height: 24px; cursor: pointer; }
 .qp-chip:hover { background: var(--dsw-alias-interactive-bg-hover); color: var(--dsw-alias-label-primary); }
