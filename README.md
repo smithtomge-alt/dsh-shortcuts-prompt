@@ -61,26 +61,31 @@ dependencies — the Host resolves the Harness packages it needs at activation.
 
 ### First publish (once, by hand)
 
+npm requires an interactive two-factor challenge for publishing, so the first
+version is released from a terminal:
+
 ```bash
-npm adduser --registry https://registry.npmjs.org   # or: npm login
+npm adduser --auth-type=legacy --registry https://registry.npmjs.org
 npm run check && npm test
-npm publish --access public                          # publishConfig picks the registry
+npm publish --otp=<current 6-digit code>   # publishConfig picks the registry
 ```
 
-Why by hand: npm has to know the package and its maintainer before any token can
-write to it, and a first publish also proves the account has a verified email.
-After that, the release workflow below owns every later version.
+The OTP is required even when you are logged in: the token `npm adduser` writes
+is a login token, and npm only accepts a bypass token (being retired) or an
+interactive code for `publish`.
 
-### Automated releases
+### Automated releases (trusted publishing)
 
 `.github/workflows/publish.yml` publishes on a GitHub Release (or a `v*` tag)
-with npm provenance:
+using npm **trusted publishing**: GitHub's OIDC identity is exchanged for a
+short-lived registry token, so there is no `NPM_TOKEN` secret to leak or rotate.
 
-1. Create an npm **Granular Access Token** with *Read and write* permission for
-   this package (or an *Automation* token) at
-   `https://www.npmjs.com/settings/<user>/tokens`.
-2. Add it as the repository secret **`NPM_TOKEN`**
-   (Settings → Secrets and variables → Actions).
+Set it up once, after the first publish:
+
+1. npmjs.com → the package → **Settings** → **Trusted publishing**.
+2. Add a **GitHub Actions** publisher: repository
+   `smithtomge-alt/dsh-shortcuts-prompt`, workflow `publish.yml`, environment
+   left empty.
 3. Bump and tag:
 
    ```bash
@@ -94,9 +99,10 @@ version, runs the same checks as CI, publishes with `--provenance`, and then
 waits for the registry to serve the new version. A manual `workflow_dispatch`
 run defaults to `--dry-run`.
 
-`.github/workflows/ci.yml` runs on every push and pull request: syntax check,
-the unit tests (`node --test`), and a tarball check that fails if a runtime file
-is missing or if tests leak into the published package.
+Bypass-2FA granular tokens still work for direct publish today, but npm is
+retiring that path for publishing, which is why this workflow does not use a
+secret. See
+[Restricting npm bypass-2FA granular access tokens](https://github.blog/changelog/2026-07-31-restricting-npm-bypass-2fa-granular-access-tokens/).
 
 Community listing: open a PR against
 [awesome-dsh-plugin](https://github.com/awesome-dsh-plugin/awesome-dsh-plugin)

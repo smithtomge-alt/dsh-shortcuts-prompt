@@ -1,9 +1,16 @@
 name: Publish to npm
 
 # Release-driven publishing: create a GitHub Release (or push a v* tag) and this
-# workflow publishes the package with provenance. The first publish must be done
-# once by a human — see README "Publish" — because npm has to know the package
-# and the maintainer before a token can write to it.
+# workflow publishes the package with provenance.
+#
+# Authentication is npm *trusted publishing* (OIDC): no token, no OTP. It needs
+# two things set up once, by hand:
+#   1. the package exists (first publish done interactively with --otp);
+#   2. npmjs.com → package → Settings → Trusted publishing → GitHub Actions,
+#      with repository smithtomge-alt/dsh-shortcuts-prompt and workflow
+#      publish.yml.
+# Bypass-2FA granular tokens are being retired for direct publish, so a secret is
+# deliberately not used here.
 
 on:
   release:
@@ -31,10 +38,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # No registry-url: that writes `_authToken=${NODE_AUTH_TOKEN}` into .npmrc,
+      # which conflicts with the OIDC exchange.
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-          registry-url: 'https://registry.npmjs.org'
 
       # Guard: the tag must match the manifest version, so a mistyped tag cannot
       # publish a version nobody meant to ship.
@@ -66,10 +74,8 @@ jobs:
             echo "skip=false" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Publish
+      - name: Publish (trusted publishing)
         if: steps.published.outputs.skip != 'true'
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.dry_run }}" = "true" ]; then
             npm publish --provenance --access public --dry-run
@@ -79,8 +85,6 @@ jobs:
 
       - name: Smoke-test the published version
         if: steps.published.outputs.skip != 'true' && (github.event_name != 'workflow_dispatch' || inputs.dry_run == false)
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           VERSION="$(node -p "require('./package.json').version")"
           for attempt in 1 2 3 4 5; do
