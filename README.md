@@ -129,6 +129,11 @@ The contribution must be `{ package, descriptors: [...] }`; the Gateway iterates
   input box.
 - **Theming.** Colors come only from `--dsw-alias-*` tokens; the stylesheet is a
   single element inserted for the Client run and removed with it.
+- **Dock spacing.** The built-in queue dock ends with
+  `margin-bottom: calc(0px - var(--dsh-composer-stack-gap) - 3px)`, tucking its
+  panel under the composer card. Any entry registered after it is dragged up by
+  that fixed 3px, so `.qp-root` adds it back plus one stack gap: the strip keeps
+  the normal spacing below such a dock instead of being covered by it.
 - **Form focus.** The name field autofocuses once, when a *new* form opens. The
   focus effect deliberately tracks the open/closed transition instead of the
   draft object: a draft is replaced on every keystroke, so depending on it would

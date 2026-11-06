@@ -237,7 +237,7 @@ __ModuleLoader__.load({
     // ------------------------------------------------------------------
 
     const CSS = `
-.qp-root { box-sizing: border-box; width: 100%; max-width: var(--dsh-composer-card-max-width); margin: 0 auto; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.qp-root { box-sizing: border-box; width: 100%; max-width: var(--dsh-composer-card-max-width); /* The built-in queue dock tucks itself under the composer card with margin-bottom: calc(0px - var(--dsh-composer-stack-gap) - 3px). Any entry after it is dragged up by that fixed 3px, so add it back plus one stack gap; a plain sibling above just gets the extra breathing room. */ margin: calc(var(--dsh-composer-stack-gap, 6px) + 3px) auto 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
 .qp-strip { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; min-width: 0; }
 .qp-chip { box-sizing: border-box; display: inline-flex; align-items: center; gap: 5px; max-width: 100%; height: 24px; padding: 0 10px; border: none; border-radius: 999px; background: var(--dsw-alias-bg-layer-2); color: var(--dsw-alias-label-secondary); font: inherit; font-size: 12px; line-height: 24px; cursor: pointer; }
 .qp-chip:hover { background: var(--dsw-alias-interactive-bg-hover); color: var(--dsw-alias-label-primary); }
@@ -327,6 +327,7 @@ __ModuleLoader__.load({
     // ------------------------------------------------------------------
     // Components
     // ------------------------------------------------------------------
+
 
     /**
      * The strip. It inserts and it opens the manager; it never edits in place.
@@ -507,6 +508,7 @@ __ModuleLoader__.load({
      * A failed write keeps the panel open and shows the reason.
      */
     function QuickPrompts({ remote, t, enabled }) {
+
       const [instructions, setInstructions] = useState([]);
       const [loading, setLoading] = useState(true);
       const [listError, setListError] = useState('');
