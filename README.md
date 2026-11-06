@@ -1,5 +1,8 @@
 # 快捷指令 · Quick Prompts
 
+[![CI](https://github.com/smithtomge-alt/dsh-shortcuts-prompt/actions/workflows/ci.yml/badge.svg)](https://github.com/smithtomge-alt/dsh-shortcuts-prompt/actions/workflows/ci.yml)
+[![npm](https://img.shields.io/npm/v/dsh-shortcuts-prompt?label=npm)](https://www.npmjs.com/package/dsh-shortcuts-prompt)
+
 A DeepSeek Harness (DSH) plugin that keeps a strip of reusable prompts directly
 above the conversation composer.
 
