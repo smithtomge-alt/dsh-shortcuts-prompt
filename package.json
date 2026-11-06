@@ -1,6 +1,6 @@
 {
   "name": "dsh-shortcuts-prompt",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "快捷指令 — keeps a strip of saved prompts above the DeepSeek Harness composer: click a chip to insert it at the caret, and manage the list inline.",
   "type": "module",
   "license": "MIT",
