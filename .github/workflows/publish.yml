@@ -52,7 +52,22 @@ jobs:
       - run: npm run check
       - run: npm test
 
+      # Both a tag push and a Release can reach this workflow, and a release is
+      # usually created right after the tag. Publishing an existing version
+      # fails, so detect it and skip instead of turning the run red.
+      - name: Is this version already on npm?
+        id: published
+        run: |
+          VERSION="$(node -p "require('./package.json').version")"
+          if npm view "dsh-shortcuts-prompt@$VERSION" version --registry https://registry.npmjs.org >/dev/null 2>&1; then
+            echo "dsh-shortcuts-prompt@$VERSION is already published — nothing to do"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Publish
+        if: steps.published.outputs.skip != 'true'
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
@@ -63,7 +78,7 @@ jobs:
           fi
 
       - name: Smoke-test the published version
-        if: github.event_name != 'workflow_dispatch' || inputs.dry_run == false
+        if: steps.published.outputs.skip != 'true' && (github.event_name != 'workflow_dispatch' || inputs.dry_run == false)
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
