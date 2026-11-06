@@ -25,7 +25,7 @@ on:
         default: true
 
 permissions:
-  contents: write # temporary: a failed publish pushes its log to ci-diagnostics
+  contents: read
   id-token: write # npm provenance
 
 concurrency:
@@ -77,56 +77,24 @@ jobs:
       - name: Publish (trusted publishing)
         id: publish
         if: steps.published.outputs.skip != 'true'
-        env:
-          NPM_CONFIG_LOGLEVEL: verbose
         run: |
-          set -o pipefail
           if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.dry_run }}" = "true" ]; then
-            npm publish --provenance --access public --loglevel=verbose --dry-run 2>&1 | tee publisher.log
+            npm publish --provenance --access public --dry-run
           else
-            npm publish --provenance --access public --loglevel=verbose 2>&1 | tee publisher.log
+            npm publish --provenance --access public
           fi
-
-      # Temporary diagnostic: GitHub keeps job logs behind authentication and the
-      # page is client-rendered, so a failed publish copies its own output to a
-      # branch we can read.
-      - name: Push publish diagnostics
-        if: always() && steps.published.outputs.skip != 'true'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          mkdir -p /tmp/diag
-          cp publisher.log /tmp/diag/publish.log 2>/dev/null || true
-          {
-            echo
-            echo "node: $(node --version)"
-            echo "npm: $(npm --version)"
-            echo "registry: $(npm config get registry)"
-            echo "oidc endpoint present: ${ACTIONS_ID_TOKEN_REQUEST_URL:+yes}"
-            echo "oidc request token present: ${ACTIONS_ID_TOKEN_REQUEST_TOKEN:+yes}"
-            echo "npm_config_provenance: ${npm_config_provenance:-unset}"
-          } >> /tmp/diag/publish.log
-          git clone --depth 1 "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" /tmp/diag/repo
-          cd /tmp/diag/repo
-          git checkout -B ci-diagnostics
-          cp /tmp/diag/publish.log ci-publish.log
-          git config user.name "ci"
-          git config user.email "ci@users.noreply.github.com"
-          git add -f ci-publish.log
-          git commit -m "ci: publish diagnostics for run ${GITHUB_RUN_ID}"
-          git push -f origin ci-diagnostics
 
       - name: Smoke-test the published version
         if: steps.publish.outcome == 'success' && (github.event_name != 'workflow_dispatch' || inputs.dry_run == false)
         run: |
           VERSION="$(node -p "require('./package.json').version")"
-          for attempt in 1 2 3 4 5; do
+          for attempt in $(seq 1 20); do
             if npm view "dsh-shortcuts-prompt@$VERSION" version --registry https://registry.npmjs.org >/dev/null 2>&1; then
               echo "published dsh-shortcuts-prompt@$VERSION"
               exit 0
             fi
-            echo "waiting for the registry to index $VERSION (attempt $attempt)"
-            sleep 6
+            echo "registry still processing $VERSION (attempt $attempt/20)"
+            sleep 15
           done
-          echo "::error::the published version did not appear on the registry"
+          echo "::error::the published version did not appear on the registry within 5 minutes"
           exit 1
