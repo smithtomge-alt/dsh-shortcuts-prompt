@@ -13,7 +13,7 @@
  * `factory(require)`, and no Harness Client package is imported.
  */
 __ModuleLoader__.load({
-  id: 'dsh-quick-prompts',
+  id: 'dsh-shortcuts-prompt',
   factory(require) {
     const React = require('react');
     const h = React.createElement;
@@ -27,7 +27,7 @@ __ModuleLoader__.load({
     /** Locale namespace owned by this plugin. */
     const NS = 'quick-prompts';
     /** Package name; matches the Client bundle id and the Remote owner. */
-    const PACKAGE = 'dsh-quick-prompts';
+    const PACKAGE = 'dsh-shortcuts-prompt';
     /** Remote namespace, reached as `ctx.remote.quickPrompts`. */
     const NAMESPACE = 'quickPrompts';
     /** Slot for entries above the composer card; this strip is the last one. */

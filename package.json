@@ -1,5 +1,5 @@
 {
-  "name": "dsh-quick-prompts",
+  "name": "dsh-shortcuts-prompt",
   "version": "1.0.0",
   "description": "快捷指令 — keeps a strip of saved prompts above the DeepSeek Harness composer: click a chip to insert it at the caret, and manage the list inline.",
   "type": "module",
@@ -31,11 +31,11 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/smithtomge-alt/dsh-quick-prompts.git"
+    "url": "git+https://github.com/smithtomge-alt/dsh-shortcuts-prompt.git"
   },
-  "homepage": "https://github.com/smithtomge-alt/dsh-quick-prompts#readme",
+  "homepage": "https://github.com/smithtomge-alt/dsh-shortcuts-prompt#readme",
   "bugs": {
-    "url": "https://github.com/smithtomge-alt/dsh-quick-prompts/issues"
+    "url": "https://github.com/smithtomge-alt/dsh-shortcuts-prompt/issues"
   },
   "engines": {
     "dsh": ">=0.2.1-rc.1 <0.3.0"

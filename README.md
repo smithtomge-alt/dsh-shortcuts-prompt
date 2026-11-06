@@ -37,13 +37,13 @@ same service methods as the UI.
 From npm:
 
 ```bash
-dsh plugin --profile <profile> add dsh-quick-prompts
+dsh plugin --profile <profile> add dsh-shortcuts-prompt
 ```
 
 From this repository (source install; it is plain JavaScript, so no build step):
 
 ```bash
-dsh plugin --profile <profile> add github:smithtomge-alt/dsh-quick-prompts
+dsh plugin --profile <profile> add github:smithtomge-alt/dsh-shortcuts-prompt
 ```
 
 In the desktop app, install it from **Plugins** (Plugin Manager) instead of the
