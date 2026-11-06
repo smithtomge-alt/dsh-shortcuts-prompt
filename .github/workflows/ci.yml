@@ -26,10 +26,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # No dependency tree and no lockfile: nothing to cache, and `cache: npm`
+      # would fail on a missing package-lock.json.
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node }}
-          cache: npm
 
       # The package ships no dependencies; this still validates the manifest.
       - run: npm install --package-lock=false --ignore-scripts

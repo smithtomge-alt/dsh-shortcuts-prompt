@@ -49,7 +49,6 @@ jobs:
             exit 1
           fi
 
-      - run: npm install --package-lock=false --ignore-scripts
       - run: npm run check
       - run: npm test
 
