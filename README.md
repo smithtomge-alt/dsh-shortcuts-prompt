@@ -53,16 +53,53 @@ page after installing so the browser half joins the Client module graph.
 ## Publish
 
 The package is a bundle: `dsh.bundle` points at `cordis.patch.yml`, and
-`dsh.client` declares the browser artifact. Bump `version`, then:
+`dsh.client` declares the browser artifact. It ships no runtime npm
+dependencies — the Host resolves the Harness packages it needs at activation.
+
+### First publish (once, by hand)
 
 ```bash
-npm publish --access public
+npm adduser --registry https://registry.npmjs.org   # or: npm login
+npm run check && npm test
+npm publish --access public                          # publishConfig picks the registry
 ```
+
+Why by hand: npm has to know the package and its maintainer before any token can
+write to it, and a first publish also proves the account has a verified email.
+After that, the release workflow below owns every later version.
+
+### Automated releases
+
+`.github/workflows/publish.yml` publishes on a GitHub Release (or a `v*` tag)
+with npm provenance:
+
+1. Create an npm **Granular Access Token** with *Read and write* permission for
+   this package (or an *Automation* token) at
+   `https://www.npmjs.com/settings/<user>/tokens`.
+2. Add it as the repository secret **`NPM_TOKEN`**
+   (Settings → Secrets and variables → Actions).
+3. Bump and tag:
+
+   ```bash
+   npm version patch          # or minor / major — updates package.json + tag
+   git push --follow-tags
+   gh release create "v$(node -p "require('./package.json').version")" --generate-notes
+   ```
+
+The workflow refuses to publish when the tag does not match the manifest
+version, runs the same checks as CI, publishes with `--provenance`, and then
+waits for the registry to serve the new version. A manual `workflow_dispatch`
+run defaults to `--dry-run`.
+
+`.github/workflows/ci.yml` runs on every push and pull request: syntax check,
+the unit tests (`node --test`), and a tarball check that fails if a runtime file
+is missing or if tests leak into the published package.
 
 Community listing: open a PR against
 [awesome-dsh-plugin](https://github.com/awesome-dsh-plugin/awesome-dsh-plugin)
 adding `data/plugins/<owner>__<repo>.yml`; the site, the market, and the
-`dsh-plugin-catalog` index are generated from those files.
+`dsh-plugin-catalog` index are generated from those files. Listing the plugin is
+a one-time entry — later releases need no further PR.
 
 ## Boot safety
 

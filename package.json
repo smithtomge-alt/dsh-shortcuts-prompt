@@ -38,6 +38,7 @@
     "url": "https://github.com/smithtomge-alt/dsh-shortcuts-prompt/issues"
   },
   "engines": {
+    "node": ">=22",
     "dsh": ">=0.2.1-rc.1 <0.3.0"
   },
   "dsh": {
@@ -53,5 +54,13 @@
         "@deepseek-ai/dsh-client-ui-conversation"
       ]
     }
+  },
+  "scripts": {
+    "check": "node --check client.js && node --check lib/index.js && node --check lib/service.js && node --check lib/schema.js && node --check test/host.test.mjs && node --check test/client-contract.test.mjs && node --check test/manifest.test.mjs",
+    "test": "node --test test/host.test.mjs test/client-contract.test.mjs test/manifest.test.mjs"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
   }
 }

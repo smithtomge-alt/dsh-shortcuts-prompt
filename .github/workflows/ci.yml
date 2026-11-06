@@ -1,0 +1,57 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+    tags-ignore: ['**']
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Test / Node ${{ matrix.node }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ['22', '24']
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+
+      # The package ships no dependencies; this still validates the manifest.
+      - run: npm install --package-lock=false --ignore-scripts
+
+      - name: Syntax check
+        run: npm run check
+
+      - name: Unit tests (Host CRUD, Client contract, manifest)
+        run: npm test
+
+      - name: Tarball contents
+        run: |
+          npm pack --dry-run
+          node -e "
+            const { execFileSync } = require('node:child_process');
+            const out = execFileSync('npm', ['pack', '--dry-run', '--json'], { encoding: 'utf8' });
+            const [pack] = JSON.parse(out);
+            const files = pack.files.map((f) => f.path).sort();
+            const required = ['client.js', 'cordis.patch.yml', 'icon.svg', 'package.json', 'lib/index.js'];
+            const missing = required.filter((f) => !files.includes(f));
+            if (missing.length) { console.error('missing from tarball:', missing); process.exit(1); }
+            const leaked = files.filter((f) => f.startsWith('test/') || f.startsWith('.github/'));
+            if (leaked.length) { console.error('unexpected files in tarball:', leaked); process.exit(1); }
+            console.log('tarball ok:', files.length, 'files');
+          "

@@ -1,0 +1,81 @@
+name: Publish to npm
+
+# Release-driven publishing: create a GitHub Release (or push a v* tag) and this
+# workflow publishes the package with provenance. The first publish must be done
+# once by a human — see README "Publish" — because npm has to know the package
+# and the maintainer before a token can write to it.
+
+on:
+  release:
+    types: [published]
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Run npm publish --dry-run instead of publishing'
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+  id-token: write # npm provenance
+
+concurrency:
+  group: publish-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          registry-url: 'https://registry.npmjs.org'
+
+      # Guard: the tag must match the manifest version, so a mistyped tag cannot
+      # publish a version nobody meant to ship.
+      - name: Check tag matches package version
+        if: github.event_name != 'workflow_dispatch'
+        run: |
+          VERSION="$(node -p "require('./package.json').version")"
+          REF="${{ github.event.release.tag_name || github.ref_name }}"
+          echo "manifest=$VERSION tag=$REF"
+          if [ "v$VERSION" != "$REF" ]; then
+            echo "::error::tag $REF does not match package version v$VERSION"
+            exit 1
+          fi
+
+      - run: npm install --package-lock=false --ignore-scripts
+      - run: npm run check
+      - run: npm test
+
+      - name: Publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.dry_run }}" = "true" ]; then
+            npm publish --provenance --access public --dry-run
+          else
+            npm publish --provenance --access public
+          fi
+
+      - name: Smoke-test the published version
+        if: github.event_name != 'workflow_dispatch' || inputs.dry_run == false
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          VERSION="$(node -p "require('./package.json').version")"
+          for attempt in 1 2 3 4 5; do
+            if npm view "dsh-shortcuts-prompt@$VERSION" version --registry https://registry.npmjs.org >/dev/null 2>&1; then
+              echo "published dsh-shortcuts-prompt@$VERSION"
+              exit 0
+            fi
+            echo "waiting for the registry to index $VERSION (attempt $attempt)"
+            sleep 6
+          done
+          echo "::error::the published version did not appear on the registry"
+          exit 1
