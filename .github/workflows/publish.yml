@@ -77,6 +77,8 @@ jobs:
       - name: Publish (trusted publishing)
         id: publish
         if: steps.published.outputs.skip != 'true'
+        env:
+          NPM_CONFIG_LOGLEVEL: verbose
         run: |
           set -o pipefail
           if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.dry_run }}" = "true" ]; then
@@ -101,6 +103,7 @@ jobs:
             echo "npm: $(npm --version)"
             echo "registry: $(npm config get registry)"
             echo "oidc endpoint present: ${ACTIONS_ID_TOKEN_REQUEST_URL:+yes}"
+            echo "oidc request token present: ${ACTIONS_ID_TOKEN_REQUEST_TOKEN:+yes}"
             echo "npm_config_provenance: ${npm_config_provenance:-unset}"
           } >> /tmp/diag/publish.log
           git clone --depth 1 "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" /tmp/diag/repo
